@@ -1,6 +1,7 @@
 <?php
 namespace Demo\Sandbox\Resource\Page;
 
+use BEAR\Resource\ResourceInterface;
 use BEAR\Resource\ResourceObject as Page;
 use BEAR\Resource\Link;
 use BEAR\Sunday\Inject\ResourceInject;
@@ -37,9 +38,9 @@ class Index extends Page
 
     /**
      * @Inject
-     * @Named("package_dir")
+     * @Named("packageDir=package_dir")
      */
-    public function __construct($packageDir)
+    public function __construct($packageDir, ResourceInterface $resource)
     {
         $bearVersion = file_get_contents($packageDir . '/VERSION');
         $this['version'] = [
@@ -47,6 +48,7 @@ class Index extends Page
             'BEAR' => $bearVersion
         ];
         $this['is_cli_server'] = (php_sapi_name() === 'cli-server');
+        $this['performance'] = $resource->get->uri('app://self/performance')->request();
     }
 
     /**
@@ -55,7 +57,6 @@ class Index extends Page
     public function onGet($name = 'World')
     {
         $this['greeting'] = 'Hello ' . $name;
-        $this['performance'] = $this->resource->get->uri('app://self/performance')->request();
 
         return $this;
     }

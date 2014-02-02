@@ -2,10 +2,13 @@
 
 namespace Demo\Sandbox\Resource\Page\Blog;
 
+use BEAR\Resource\ResourceInterface;
 use BEAR\Resource\ResourceObject as Page;
 use BEAR\Sunday\Inject\ResourceInject;
 use BEAR\Sunday\Annotation;
-use BEAR\Sunday\Annotation\Cache;
+use Ray\Di\Di\PostConstruct;
+use Ray\Di\Di\Inject;
+
 
 /**
  * Blog index page
@@ -14,26 +17,33 @@ use BEAR\Sunday\Annotation\Cache;
  */
 class Posts extends Page
 {
-    use ResourceInject;
+    /**
+     * @var \BEAR\Resource\ResourceInterface
+     */
+    protected $resource;
 
     /**
-     * @var array
+     * @var ResourceObject
      */
-    public $body = [
-        'posts' => ''
-    ];
+    protected $posts;
 
     /**
-     * @Cache
-     * @internal Cache "request", not the result of request. never changed.
+     * @param ResourceInterface $resource
+     *
+     * @Inject
      */
-    public function onGet()
+    public function __construct(ResourceInterface $resource)
     {
+        $this->resource = $resource;
         $this['posts'] = $this->resource
             ->get
             ->uri('app://self/blog/posts')
             ->request();
+        $this->posts = $this->resource->newInstance('app://self/blog/posts');
+    }
 
+    public function onGet()
+    {
         return $this;
     }
 
@@ -45,7 +55,7 @@ class Posts extends Page
         // delete
         $this->resource
             ->delete
-            ->uri('app://self/blog/posts')
+            ->object($this->posts)
             ->withQuery(['id' => $id])
             ->eager
             ->request();
